@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YT Downloader — Download YouTube Videos in Original Quality</title>
+    <meta name="description" content="Download any YouTube video in original quality, no quality loss, even hours-long videos." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+    <!-- Background particles -->
+    <div class="bg-particles" id="bgParticles"></div>
+    <div class="bg-gradient-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div class="app-wrapper">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="24" height="24" rx="6" fill="#FF0000"/>
+                        <path d="M9.5 7.5L16.5 12L9.5 16.5V7.5Z" fill="white"/>
+                    </svg>
+                </div>
+                <span class="logo-text">YT<span class="logo-accent">Downloader</span></span>
+            </div>
+            <div class="header-badge">
+                <span class="badge-dot"></span>
+                Original Quality
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1 class="hero-title">
+                Download YouTube Videos
+                <span class="hero-highlight">Without Limits</span>
+            </h1>
+            <p class="hero-subtitle">
+                Full resolution · Zero quality loss · Hours-long videos · MP4 & MP3
+            </p>
+
+            <!-- URL Input -->
+            <div class="search-container">
+                <div class="search-box" id="searchBox">
+                    <div class="search-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M13.5 5C12.5817 5 11.7 5.3687 11.0503 5.99497C10.3996 6.6212 10 7.48885 10 8.5C10 9.51115 10.3996 10.3788 11.0503 11.005C11.7 11.6313 12.5817 12 13.5 12H15.5V15H13.5C11.8424 15 10.3526 14.3284 9.27894 13.2438C8.20528 12.1592 7.5 10.6592 7.5 9C7.5 7.34079 8.20528 5.84079 9.27894 4.75618C10.3526 3.67157 11.8424 3 13.5 3C15.1576 3 16.6474 3.67157 17.7211 4.75618C18.7947 5.84079 19.5 7.34079 19.5 9H17.5C17.5 7.89543 17.0791 6.875 16.3787 6.14645C15.6781 5.41789 14.6436 5 13.5 5Z" fill="currentColor"/>
+                            <rect x="3" y="14" width="2" height="7" rx="1" fill="currentColor"/>
+                            <rect x="7" y="17" width="2" height="4" rx="1" fill="currentColor"/>
+                            <path d="M21 9H19V19H21V9Z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <input
+                        type="text"
+                        id="urlInput"
+                        class="url-input"
+                        placeholder="Paste YouTube URL here..."
+                        autocomplete="off"
+                        spellcheck="false"
+                    />
+                    <button class="paste-btn" id="pasteBtn" title="Paste from clipboard">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Paste
+                    </button>
+                    <button class="clear-btn" id="clearBtn" title="Clear" style="display:none;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <button class="fetch-btn" id="fetchBtn">
+                    <span class="fetch-btn-text">Fetch Video</span>
+                    <span class="fetch-btn-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                </button>
+            </div>
+
+            <!-- Features row -->
+            <div class="features-row">
+                <div class="feature-pill">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg>
+                    4K / 1080p / 720p
+                </div>
+                <div class="feature-pill">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg>
+                    MP4 & MP3
+                </div>
+                <div class="feature-pill">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg>
+                    No File Size Limit
+                </div>
+                <div class="feature-pill">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg>
+                    100% Free
+                </div>
+            </div>
+        </section>
+
+        <!-- Loading State -->
+        <div class="loading-card" id="loadingCard" style="display:none;">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Fetching video information...</p>
+        </div>
+
+        <!-- Error Toast -->
+        <div class="error-toast" id="errorToast" style="display:none;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#ff4444" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="#ff4444" stroke-width="2" stroke-linecap="round"/></svg>
+            <span id="errorMessage">An error occurred.</span>
+            <button class="toast-close" onclick="hideError()">✕</button>
+        </div>
+
+        <!-- Success Toast -->
+        <div class="success-toast" id="successToast" style="display:none;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#22c55e" stroke-width="2"/><path d="M8 12l3 3 5-5" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span id="successMessage">Download started!</span>
+        </div>
+
+        <!-- Video Card -->
+        <section class="video-card" id="videoCard" style="display:none;">
+
+            <div class="video-info-section">
+                <div class="thumbnail-wrapper">
+                    <img id="videoThumbnail" src="" alt="Video thumbnail" class="thumbnail" />
+                    <div class="duration-badge" id="durationBadge"></div>
+                    <div class="thumbnail-overlay">
+                        <div class="play-icon">
+                            <svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="video-meta">
+                    <h2 class="video-title" id="videoTitle"></h2>
+                    <div class="video-stats">
+                        <span class="stat">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/></svg>
+                            <span id="videoChannel"></span>
+                        </span>
+                        <span class="stat">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>
+                            <span id="videoViews"></span> views
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Format Selector -->
+            <div class="format-section">
+                <label class="format-label" for="formatSelect">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Select Quality & Format
+                </label>
+                <select class="format-select" id="formatSelect"></select>
+            </div>
+
+            <!-- Download Button -->
+            <button class="download-btn" id="downloadBtn">
+                <span class="download-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </span>
+                <span id="downloadBtnText">Download Now</span>
+            </button>
+
+            <!-- Progress Section -->
+            <div class="progress-section" id="progressSection" style="display:none;">
+                <div class="progress-info">
+                    <span id="progressStatus">Preparing...</span>
+                    <span id="progressSpeed"></span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <div class="progress-details">
+                    <span id="progressPercent">0%</span>
+                    <span id="progressEta"></span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Server Status -->
+        <div class="server-status" id="serverStatus">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusText">Checking server...</span>
+        </div>
+
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-links">
+                <a href="#" class="footer-link">How it Works</a>
+                <a href="#" class="footer-link">Privacy Policy</a>
+                <a href="#" class="footer-link">Terms of Service</a>
+            </div>
+            
+            <!-- SUPPORT SECTION -->
+            <div class="support-section">
+                <h3>Enjoying this tool?</h3>
+                <p>Help us keep it free and updated for everyone!</p>
+                <div class="support-actions">
+                    <a href="https://www.buymeacoffee.com/" target="_blank" class="support-btn bmc">
+                        <img src="https://cdn.buymeacoffee.com/buttons/bmc-new-btn-logo.svg" alt="BMC">
+                        <span>Buy me a coffee</span>
+                    </a>
+                    <div class="support-btn upi">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v10h10v-10h-10zm1 1h8v8h-8v-8zm1 1v6h6v-6h-6zm1 1h4v4h-4v-4zm-8 8v10h10v-10h-10zm1 1h8v8h-8v-8zm1 1v6h6v-6h-6zm1 1h4v4h-4v-4zm11-1v10h10v-10h-10zm1 1h8v8h-8v-8zm1 1v6h6v-6h-6zm1 1h4v4h-4v-4z"/></svg>
+                        <span>Support via UPI</span>
+                    </div>
+                </div>
+            </div>
+
+            <p>Powered by <strong>yt-dlp</strong> · For personal use only · Respect copyright laws</p>
+        </footer>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
