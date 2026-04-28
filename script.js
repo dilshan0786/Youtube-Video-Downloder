@@ -172,7 +172,10 @@ async function fetchVideoInfo() {
         const res = await fetch(`${API_BASE}/info`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url })
+            body: JSON.stringify({ 
+                url: url,
+                cookies: localStorage.getItem('yt_cookies') || ''
+            })
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Failed to fetch video info');
