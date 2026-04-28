@@ -127,7 +127,9 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 24px 0 40px;
+    padding: 20px 0 30px;
+    gap: 15px;
+    flex-wrap: wrap;
 }
 
 .logo {
@@ -162,14 +164,15 @@ body {
     display: flex;
     align-items: center;
     gap: 7px;
-    padding: 6px 14px;
+    padding: 6px 12px;
     background: rgba(34, 197, 94, 0.1);
     border: 1px solid rgba(34, 197, 94, 0.25);
     border-radius: 100px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--green);
     letter-spacing: 0.3px;
+    white-space: nowrap;
 }
 
 .badge-dot {
@@ -769,6 +772,72 @@ body {
     background: var(--green);
     box-shadow: 0 0 8px var(--green);
     animation: pulse 2s ease-in-out infinite;
+}
+
+/* ============================================================
+   Settings & Modal Styles
+   ============================================================ */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.settings-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px solid var(--border);
+    color: var(--text-primary);
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    flex-shrink: 0;
+}
+
+.settings-btn:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    transform: rotate(90deg) scale(1.1);
+    box-shadow: 0 0 15px var(--accent-glow);
+}
+
+.setup-reminder {
+    background: rgba(255, 165, 0, 0.1);
+    border: 1px solid rgba(255, 165, 0, 0.3);
+    color: #ffa500;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-right: 5px;
+    animation: pulseOrange 2s infinite;
+}
+
+@keyframes pulseOrange {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.error-action-btn {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 6px 12px;
+    background: var(--accent);
+    color: white;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 12px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
 }
 
 .status-dot.offline {

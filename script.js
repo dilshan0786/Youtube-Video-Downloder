@@ -37,6 +37,18 @@ let sessionId = '';
 let progressInterval = null;
 let isDownloading = false;
 
+// Initialize Cookie State
+function initCookieState() {
+    const cookies = localStorage.getItem('yt_cookies');
+    const reminder = document.getElementById('setupReminder');
+    if (!cookies) {
+        reminder.style.display = 'block';
+        reminder.addEventListener('click', () => settingsBtn.click());
+    } else {
+        reminder.style.display = 'none';
+    }
+}
+
 /* ============================================================
    Background Particles
    ============================================================ */
@@ -158,7 +170,11 @@ async function fetchVideoInfo() {
                 showError('Server is waking up (Render free tier). Please wait 30 seconds and try again.');
             }
         } else {
-            showError(err.message || 'Failed to fetch video information.');
+            if (err.message.includes('Sign-in required') || err.message.includes('sign-in')) {
+                showErrorWithAction('This video requires sign-in. Please complete the One-Time Setup to fix this.', 'Fix Now');
+            } else {
+                showError(err.message || 'Failed to fetch video information.');
+            }
         }
     } finally {
         setFetchLoading(false);
@@ -340,9 +356,26 @@ function clearProgressPolling() {
    ============================================================ */
 function showError(msg) {
     errorMessage.textContent = msg;
+    // Clear any previous action buttons
+    const oldBtn = errorToast.querySelector('.error-action-btn');
+    if (oldBtn) oldBtn.remove();
+    
     errorToast.style.display = 'flex';
     successToast.style.display = 'none';
 }
+
+function showErrorWithAction(msg, actionText) {
+    showError(msg);
+    const actionBtn = document.createElement('button');
+    actionBtn.className = 'error-action-btn';
+    actionBtn.textContent = actionText;
+    actionBtn.onclick = () => {
+        hideError();
+        settingsBtn.click();
+    };
+    errorToast.appendChild(actionBtn);
+}
+
 function hideError() { errorToast.style.display = 'none'; }
 
 function showSuccess(msg) {
@@ -354,10 +387,35 @@ function hideSuccess() { successToast.style.display = 'none'; }
 
 window.hideError = hideError;
 
+saveCookiesBtn.addEventListener('click', () => {
+    const val = cookieInput.value.trim();
+    if (val) {
+        localStorage.setItem('yt_cookies', val);
+        initCookieState();
+        showSuccess('Setup saved! Ab aap high-quality aur age-restricted videos download kar sakte hain.');
+    } else {
+        localStorage.removeItem('yt_cookies');
+        initCookieState();
+        showSuccess('Settings cleared.');
+    }
+    setupModal.style.display = 'none';
+});
+
+clearCookiesBtn.addEventListener('click', () => {
+    cookieInput.value = '';
+    localStorage.removeItem('yt_cookies');
+    initCookieState();
+    showSuccess('All saved cookies cleared.');
+    setupModal.style.display = 'none';
+});
+
 /* ============================================================
    Init
    ============================================================ */
-createParticles();
-checkServerHealth();
-setInterval(checkServerHealth, 15000);
-urlInput.focus();
+document.addEventListener('DOMContentLoaded', () => {
+    createParticles();
+    checkServerHealth();
+    initCookieState();
+    setInterval(checkServerHealth, 15000);
+    urlInput.focus();
+});
