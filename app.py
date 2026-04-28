@@ -136,7 +136,7 @@ def get_info():
         size_str = f" (~{format_filesize(best_total)})" if best_total else ""
         
         formats.append({
-            "format_id": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best",
+            "format_id": "bestvideo+bestaudio/best",
             "label": f"Best Quality (Highest Available){size_str}",
             "ext": "mp4",
         })
@@ -148,7 +148,7 @@ def get_info():
                 total = v_size + best_audio_size
                 s_str = f" (~{format_filesize(total)})" if total else ""
                 formats.append({
-                    "format_id": f"bestvideo[height<={h}][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<={h}]+bestaudio/best[height<={h}]",
+                    "format_id": f"bestvideo[height<={h}]+bestaudio/best[height<={h}]",
                     "label": f"{label}{s_str}", "ext": "mp4"
                 })
 
