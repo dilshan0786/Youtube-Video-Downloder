@@ -23,11 +23,9 @@ FFMPEG_EXE = find_ffmpeg()
 
 def create_temp_cookies(cookies_str):
     if not cookies_str or len(cookies_str) < 20: return None
-    
-    # SMART CHECK: Check if cookies actually belong to YouTube
-    if ".youtube.com" not in cookies_str and "google.com" not in cookies_str:
+    # Flexible domain check
+    if "youtube.com" not in cookies_str.lower() and "google.com" not in cookies_str.lower():
         return "INVALID_DOMAIN"
-        
     try:
         fd, path = tempfile.mkstemp(suffix='.txt', prefix='yt_cookie_', dir=TEMP_DIR)
         with os.fdopen(fd, 'w') as f: f.write(cookies_str)
@@ -35,16 +33,26 @@ def create_temp_cookies(cookies_str):
     except: return None
 
 def get_ydl_opts(temp_cookie_file=None):
-    opts = {
+    # Using 'tv', 'web_embedded', and 'ios' for maximum bot bypass
+    return {
         'quiet': True,
         'no_warnings': True,
         'nocheckcertificate': True,
         'ffmpeg_location': FFMPEG_EXE,
         'cookiefile': temp_cookie_file if temp_cookie_file and temp_cookie_file != "INVALID_DOMAIN" else None,
-        'extractor_args': {'youtube': {'player_client': ['ios', 'web', 'mweb']}},
-        'user_agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1'
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['tv', 'web_embedded', 'ios', 'android'],
+                'skip': ['dash', 'hls']
+            }
+        },
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://www.youtube.com/',
+        }
     }
-    return opts
 
 @app.route('/health')
 def health(): return "OK", 200
@@ -67,7 +75,6 @@ def get_info():
 
     try:
         with yt_dlp.YoutubeDL(get_ydl_opts(temp_cookie_file)) as ydl:
-            # First try to extract without format restriction
             info = ydl.extract_info(url, download=False)
         
         formats = [
@@ -85,19 +92,7 @@ def get_info():
             "formats": formats
         })
     except Exception as e:
-        msg = str(e)
-        if "format is not available" in msg:
-            # Fallback for some weird videos
-            try:
-                with yt_dlp.YoutubeDL({'quiet':True, 'no_warnings':True}) as ydl2:
-                    info2 = ydl2.extract_info(url, download=False)
-                    return jsonify({
-                        "title": info2.get('title', 'Video'),
-                        "thumbnail": info2.get('thumbnail', ''),
-                        "formats": [{"format_id": "best", "label": "Standard Quality", "ext": "mp4"}]
-                    })
-            except: pass
-        return jsonify({"error": msg[:500]}), 400
+        return jsonify({"error": str(e)[:500]}), 400
     finally:
         if temp_cookie_file and os.path.exists(temp_cookie_file):
             try: os.remove(temp_cookie_file)
