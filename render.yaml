@@ -3,7 +3,7 @@ services:
     name: youtube-downloader
     env: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "python app.py"
+    startCommand: "gunicorn app:app --bind 0.0.0.0:10000"
     envVars:
       - key: PORT
-        value: 5000
+        value: 10000

@@ -52,6 +52,10 @@ def get_ydl_opts(temp_cookie_file=None):
 # ──────────────────────────────────────────────
 # Routes
 # ──────────────────────────────────────────────
+@app.route('/health')
+def health():
+    return "OK", 200
+
 @app.route('/')
 def home(): return send_from_directory(os.getcwd(), 'index.html')
 
