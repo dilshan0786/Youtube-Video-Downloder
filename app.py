@@ -1,6 +1,5 @@
 import os
 import sys
-import glob
 import tempfile
 import time
 import shutil
@@ -11,35 +10,21 @@ import yt_dlp
 app = Flask(__name__)
 CORS(app)
 
-# Cloud-friendly Temp Directory
 TEMP_DIR = tempfile.gettempdir()
 download_progress = {}
 
 # ──────────────────────────────────────────────
-# FFmpeg Detection (Windows & Linux Support)
+# FFmpeg Detection for Cloud (Linux)
 # ──────────────────────────────────────────────
 def find_ffmpeg():
-    # 1. Check system PATH (Common for Linux/Cloud)
+    # Priority for Linux/Cloud systems
+    for path in ['/usr/bin/ffmpeg', '/usr/local/bin/ffmpeg']:
+        if os.path.exists(path): return path
+    # Fallback to system search
     p = shutil.which("ffmpeg")
-    if p: return os.path.dirname(p)
-    
-    # 2. Windows-specific fallback
-    if os.name == 'nt':
-        local_app = os.environ.get("LOCALAPPDATA", "")
-        patterns = [
-            os.path.join(local_app, "Microsoft", "WinGet", "Packages", "Gyan.FFmpeg*", "**", "bin"),
-            r"C:\ffmpeg\bin",
-            r"C:\Program Files\ffmpeg\bin",
-        ]
-        for pattern in patterns:
-            matches = glob.glob(pattern, recursive=True)
-            for m in matches:
-                if os.path.isfile(os.path.join(m, "ffmpeg.exe")): return m
-    return None
+    return p if p else None
 
-FFMPEG_PATH = find_ffmpeg()
-if FFMPEG_PATH:
-    os.environ["PATH"] = FFMPEG_PATH + os.pathsep + os.environ.get("PATH", "")
+FFMPEG_EXE = find_ffmpeg()
 
 # ──────────────────────────────────────────────
 # Helpers
@@ -57,14 +42,11 @@ def get_ydl_opts(temp_cookie_file=None):
         'quiet': True,
         'no_warnings': True,
         'nocheckcertificate': True,
-        'ffmpeg_location': FFMPEG_PATH,
+        'ffmpeg_location': FFMPEG_EXE,
         'cookiefile': temp_cookie_file,
-        'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
-        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'http_headers': {
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-us,en;q=0.5',
-        }
+        # Shorts and Restricted videos optimized clients
+        'extractor_args': {'youtube': {'player_client': ['ios', 'web', 'mweb']}},
+        'user_agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1'
     }
 
 # ──────────────────────────────────────────────
@@ -80,31 +62,30 @@ def static_files(path): return send_from_directory(os.getcwd(), path)
 def get_info():
     data = request.get_json()
     url = data.get('url', '').strip()
-    if not url: return jsonify({"error": "URL missing"}), 400
-    
     temp_cookie_file = create_temp_cookies(data.get('cookies'))
     
     try:
         with yt_dlp.YoutubeDL(get_ydl_opts(temp_cookie_file)) as ydl:
             info = ydl.extract_info(url, download=False)
         
-        # Super robust format choices
+        # We define simple labels, but the format_id will have multiple fallbacks
+        # format_id: "try this + that / OR try this / OR just get the best single file"
         formats = [
-            {"format_id": "bestvideo+bestaudio/best", "label": "Best Quality (Default)", "ext": "mp4"},
-            {"format_id": "bestvideo[height<=1080]+bestaudio/best[height<=1080]", "label": "1080p Full HD", "ext": "mp4"},
-            {"format_id": "bestvideo[height<=720]+bestaudio/best[height<=720]", "label": "720p HD", "ext": "mp4"},
-            {"format_id": "bestvideo[height<=480]+bestaudio/best[height<=480]", "label": "480p SD", "ext": "mp4"},
+            {"format_id": "bestvideo+bestaudio/best", "label": "Best Quality (Highest)", "ext": "mp4"},
+            {"format_id": "bestvideo[height<=1080]+bestaudio/best[height<=1080]/best", "label": "1080p Full HD", "ext": "mp4"},
+            {"format_id": "bestvideo[height<=720]+bestaudio/best[height<=720]/best", "label": "720p HD", "ext": "mp4"},
+            {"format_id": "bestvideo[height<=480]+bestaudio/best[height<=480]/best", "label": "480p SD", "ext": "mp4"},
             {"format_id": "bestaudio/best", "label": "Audio Only (MP3)", "ext": "mp3"}
         ]
 
         return jsonify({
             "title": info.get('title', 'Video'),
             "thumbnail": info.get('thumbnail', ''),
-            "duration": time.strftime('%H:%M:%S', time.gmtime(info.get('duration', 0))),
+            "duration": str(info.get('duration', 0)),
             "formats": formats
         })
     except Exception as e:
-        return jsonify({"error": str(e)[:500]}), 400
+        return jsonify({"error": str(e)}), 400
     finally:
         if temp_cookie_file and os.path.exists(temp_cookie_file):
             try: os.remove(temp_cookie_file)
@@ -128,9 +109,13 @@ def download_video():
             except: p = 0
             download_progress[session_id]['percent'] = p
 
+    # THE MAGIC: We add "/best" at the end of whatever format is requested 
+    # so yt-dlp NEVER says "format not available"
+    final_format = f"{format_id}/best"
+
     ydl_opts = get_ydl_opts(temp_cookie_file)
     ydl_opts.update({
-        'format': format_id,
+        'format': final_format,
         'outtmpl': output_template,
         'progress_hooks': [hook],
         'merge_output_format': 'mp4' if 'bestaudio' not in format_id else None
@@ -143,7 +128,6 @@ def download_video():
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             path = ydl.prepare_filename(info)
-            # Find merged file
             base = os.path.splitext(path)[0]
             for ext in ['.mp4', '.mkv', '.mp3', '.webm', '.m4a']:
                 if os.path.exists(base + ext):
@@ -151,7 +135,6 @@ def download_video():
                     break
 
         download_progress[session_id]['status'] = 'done'
-        
         file_size = os.path.getsize(path)
         download_name = os.path.basename(path).replace(f"yt_{session_id}_", "")
 
@@ -170,7 +153,7 @@ def download_video():
         })
     except Exception as e:
         download_progress[session_id]['status'] = 'error'
-        return jsonify({"error": str(e)[:500]}), 500
+        return jsonify({"error": str(e)}), 500
     finally:
         if temp_cookie_file and os.path.exists(temp_cookie_file):
             try: os.remove(temp_cookie_file)
