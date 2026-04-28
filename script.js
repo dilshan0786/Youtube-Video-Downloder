@@ -2,7 +2,7 @@
    YouTube Downloader — Frontend Logic
    ============================================================ */
 
-const PRODUCTION_URL = ''; // Railway will use the current domain automatically
+const PRODUCTION_URL = ''; 
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
     ? 'http://localhost:5000'
     : window.location.origin;
@@ -29,8 +29,16 @@ const progressSpeed = document.getElementById('progressSpeed');
 const progressEta = document.getElementById('progressEta');
 const statusDot = document.getElementById('statusDot');
 const statusText = document.getElementById('statusText');
-const rewardedAdModal = document.getElementById('rewardedAdModal');
-const skipAdBtn = document.getElementById('skipAdBtn');
+
+// Cookie Setup Elements (FIXED: Added declarations)
+const settingsBtn = document.getElementById('settingsBtn');
+const setupModal = document.getElementById('setupModal');
+const closeModal = document.getElementById('closeModal');
+const saveCookiesBtn = document.getElementById('saveCookiesBtn');
+const clearCookiesBtn = document.getElementById('clearCookiesBtn');
+const cookieInput = document.getElementById('cookieInput');
+const setupReminder = document.getElementById('setupReminder');
+const setupTabs = document.querySelectorAll('.setup-tab');
 
 let currentVideoUrl = '';
 let sessionId = '';
@@ -40,12 +48,12 @@ let isDownloading = false;
 // Initialize Cookie State
 function initCookieState() {
     const cookies = localStorage.getItem('yt_cookies');
-    const reminder = document.getElementById('setupReminder');
-    if (!cookies) {
-        reminder.style.display = 'block';
-        reminder.addEventListener('click', () => settingsBtn.click());
-    } else {
-        reminder.style.display = 'none';
+    if (setupReminder) {
+        if (!cookies) {
+            setupReminder.style.display = 'block';
+        } else {
+            setupReminder.style.display = 'none';
+        }
     }
 }
 
@@ -54,6 +62,7 @@ function initCookieState() {
    ============================================================ */
 function createParticles() {
     const container = document.getElementById('bgParticles');
+    if (!container) return;
     const colors = ['#ff3d3d', '#ff9f9f', '#a855f7', '#3b82f6', '#22c55e'];
     for (let i = 0; i < 20; i++) {
         const p = document.createElement('div');
@@ -74,7 +83,7 @@ function createParticles() {
    Server Health Check
    ============================================================ */
 async function checkServerHealth() {
-    // Longer timeout for the first check to allow Render to wake up
+    if (!statusText || !statusDot) return;
     const isFirstCheck = statusText.textContent === 'Checking server...';
     const timeout = isFirstCheck ? 15000 : 5000; 
 
@@ -96,6 +105,7 @@ async function checkServerHealth() {
 }
 
 function setServerOffline() {
+    if (!statusDot || !statusText) return;
     statusDot.className = 'status-dot offline';
     const isLocal = (window.location.hostname === 'localhost' || window.location.protocol === 'file:');
     
@@ -109,30 +119,36 @@ function setServerOffline() {
 /* ============================================================
    URL Input
    ============================================================ */
-urlInput.addEventListener('input', () => {
-    clearBtn.style.display = urlInput.value ? 'flex' : 'none';
-});
+if (urlInput) {
+    urlInput.addEventListener('input', () => {
+        if (clearBtn) clearBtn.style.display = urlInput.value ? 'flex' : 'none';
+    });
 
-urlInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') fetchVideoInfo();
-});
+    urlInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') fetchVideoInfo();
+    });
+}
 
-pasteBtn.addEventListener('click', async () => {
-    try {
-        const text = await navigator.clipboard.readText();
-        urlInput.value = text;
-        clearBtn.style.display = text ? 'flex' : 'none';
-        if (isYouTubeUrl(text)) fetchVideoInfo();
-    } catch { urlInput.focus(); }
-});
+if (pasteBtn) {
+    pasteBtn.addEventListener('click', async () => {
+        try {
+            const text = await navigator.clipboard.readText();
+            urlInput.value = text;
+            if (clearBtn) clearBtn.style.display = text ? 'flex' : 'none';
+            if (isYouTubeUrl(text)) fetchVideoInfo();
+        } catch { urlInput.focus(); }
+    });
+}
 
-clearBtn.addEventListener('click', () => {
-    urlInput.value = '';
-    clearBtn.style.display = 'none';
-    hideError();
-    hideVideoCard();
-    urlInput.focus();
-});
+if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+        urlInput.value = '';
+        clearBtn.style.display = 'none';
+        hideError();
+        hideVideoCard();
+        urlInput.focus();
+    });
+}
 
 function isYouTubeUrl(url) {
     return /^(https?:\/\/)?(www\.)?(youtube\.com\/watch|youtu\.be\/|youtube\.com\/shorts\/)/i.test(url.trim());
@@ -141,7 +157,7 @@ function isYouTubeUrl(url) {
 /* ============================================================
    Fetch Video Info
    ============================================================ */
-fetchBtn.addEventListener('click', fetchVideoInfo);
+if (fetchBtn) fetchBtn.addEventListener('click', fetchVideoInfo);
 
 async function fetchVideoInfo() {
     const url = urlInput.value.trim();
@@ -182,9 +198,11 @@ async function fetchVideoInfo() {
 }
 
 function setFetchLoading(loading) {
+    if (!fetchBtn) return;
     fetchBtn.disabled = loading;
-    fetchBtn.querySelector('.fetch-btn-text').textContent = loading ? 'Fetching...' : 'Fetch Video';
-    loadingCard.style.display = loading ? 'flex' : 'none';
+    const btnText = fetchBtn.querySelector('.fetch-btn-text');
+    if (btnText) btnText.textContent = loading ? 'Fetching...' : 'Fetch Video';
+    if (loadingCard) loadingCard.style.display = loading ? 'flex' : 'none';
 }
 
 /* ============================================================
@@ -192,63 +210,74 @@ function setFetchLoading(loading) {
    ============================================================ */
 function displayVideoInfo(data) {
     const thumb = document.getElementById('videoThumbnail');
-    thumb.src = data.thumbnail || '';
-    thumb.onerror = () => { thumb.src = ''; thumb.style.display = 'none'; };
+    if (thumb) {
+        thumb.src = data.thumbnail || '';
+        thumb.onerror = () => { thumb.src = ''; thumb.style.display = 'none'; };
+    }
 
-    document.getElementById('videoTitle').textContent = data.title || 'Unknown Title';
-    document.getElementById('videoChannel').textContent = data.channel || 'Unknown';
-    document.getElementById('videoViews').textContent = data.views || '—';
-    document.getElementById('durationBadge').textContent = data.duration || '';
+    const titleEl = document.getElementById('videoTitle');
+    const channelEl = document.getElementById('videoChannel');
+    const viewsEl = document.getElementById('videoViews');
+    const durationEl = document.getElementById('durationBadge');
 
-    formatSelect.innerHTML = '';
-    (data.formats || []).forEach(fmt => {
-        const opt = document.createElement('option');
-        opt.value = fmt.format_id;
-        opt.textContent = fmt.label;
-        formatSelect.appendChild(opt);
-    });
+    if (titleEl) titleEl.textContent = data.title || 'Unknown Title';
+    if (channelEl) channelEl.textContent = data.channel || 'Unknown';
+    if (viewsEl) viewsEl.textContent = data.views || '—';
+    if (durationEl) durationEl.textContent = data.duration || '';
+
+    if (formatSelect) {
+        formatSelect.innerHTML = '';
+        (data.formats || []).forEach(fmt => {
+            const opt = document.createElement('option');
+            opt.value = fmt.format_id;
+            opt.textContent = fmt.label;
+            formatSelect.appendChild(opt);
+        });
+    }
 
     resetDownloadState();
-    videoCard.style.display = 'block';
-    videoCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (videoCard) {
+        videoCard.style.display = 'block';
+        videoCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 }
 
 function hideVideoCard() {
-    videoCard.style.display = 'none';
+    if (videoCard) videoCard.style.display = 'none';
     resetDownloadState();
 }
 
 /* ============================================================
-   DOWNLOAD  — Direct browser download via anchor tag
-   Flask streams the file with Content-Disposition: attachment
-   so the browser saves natively to the Downloads folder.
-   No blob, no memory limit — works for multi-GB files.
+   DOWNLOAD Logic
    ============================================================ */
-downloadBtn.addEventListener('click', startDownload);
+if (downloadBtn) downloadBtn.addEventListener('click', startDownload);
 
 async function startDownload() {
     if (isDownloading || !currentVideoUrl) return;
 
-    const formatId = formatSelect.value;
+    const formatId = formatSelect ? formatSelect.value : '';
     if (!formatId) { showError('Please select a quality/format.'); return; }
 
     isDownloading = true;
     sessionId = 'sess_' + Date.now();
 
-    downloadBtn.disabled = true;
-    downloadBtnText.textContent = 'Preparing...';
-    progressSection.style.display = 'block';
-    progressStatus.textContent = 'Server pe video download ho raha hai...';
-    progressSpeed.textContent = '';
-    progressEta.textContent = '';
-    setProgress(0);
+    if (downloadBtn) {
+        downloadBtn.disabled = true;
+        if (downloadBtnText) downloadBtnText.textContent = 'Preparing...';
+    }
+    
+    if (progressSection) progressSection.style.display = 'block';
+    if (progressStatus) progressStatus.textContent = 'Server pe video download ho raha hai...';
     hideError();
 
-    // Build URL pointing to Flask /download endpoint
-    const params = new URLSearchParams({ url: currentVideoUrl, format_id: formatId, session_id: sessionId });
+    const params = new URLSearchParams({ 
+        url: currentVideoUrl, 
+        format_id: formatId, 
+        session_id: sessionId,
+        cookies: localStorage.getItem('yt_cookies') || ''
+    });
     const downloadUrl = `${API_BASE}/download?${params.toString()}`;
 
-    // Trigger native browser download — browser handles the Save-As dialog itself
     const a = document.createElement('a');
     a.href = downloadUrl;
     a.style.display = 'none';
@@ -256,21 +285,19 @@ async function startDownload() {
     a.click();
     document.body.removeChild(a);
 
-    downloadBtnText.textContent = 'Downloading...';
+    if (downloadBtnText) downloadBtnText.textContent = 'Downloading...';
 
-    // Poll server for progress while it downloads & merges
     try {
         await pollUntilDone(sessionId);
     } catch (err) {
         showError(err.message || 'Download failed.');
         resetDownloadState();
-        return;
     } finally {
         clearProgressPolling();
         isDownloading = false;
         setTimeout(() => {
-            downloadBtn.disabled = false;
-            downloadBtnText.textContent = 'Download Now';
+            if (downloadBtn) downloadBtn.disabled = false;
+            if (downloadBtnText) downloadBtnText.textContent = 'Download Now';
         }, 4000);
     }
 }
@@ -278,13 +305,6 @@ async function startDownload() {
 function pollUntilDone(sid) {
     return new Promise((resolve, reject) => {
         const POLL_MS = 1000;
-        const TIMEOUT_H = 3;   // give up after 3 hours (handles longest videos)
-
-        const deadlineTimer = setTimeout(() => {
-            clearProgressPolling();
-            resolve(); // Don't reject — file may still arrive
-        }, TIMEOUT_H * 60 * 60 * 1000);
-
         progressInterval = setInterval(async () => {
             try {
                 const res = await fetch(`${API_BASE}/progress?session_id=${sid}`);
@@ -295,55 +315,47 @@ function pollUntilDone(sid) {
                     case 'downloading':
                         const pct = Math.min(95, data.percent || 0);
                         setProgress(pct);
-                        progressStatus.textContent = 'Server pe download ho raha hai...';
-                        if (data.speed) progressSpeed.textContent = data.speed;
-                        if (data.eta) progressEta.textContent = `ETA: ${data.eta}`;
+                        if (progressStatus) progressStatus.textContent = 'Server pe download ho raha hai...';
+                        if (progressSpeed && data.speed) progressSpeed.textContent = data.speed;
+                        if (progressEta && data.eta) progressEta.textContent = `ETA: ${data.eta}`;
                         break;
 
                     case 'processing':
                         setProgress(97);
-                        progressStatus.textContent = 'Video + Audio merge ho raha hai (ffmpeg)...';
-                        progressEta.textContent = 'Almost done...';
+                        if (progressStatus) progressStatus.textContent = 'Video + Audio merge ho raha hai (ffmpeg)...';
                         break;
 
                     case 'done':
-                        clearTimeout(deadlineTimer);
                         clearProgressPolling();
                         setProgress(100);
-                        progressStatus.textContent = 'Download complete! File saved in your Downloads folder.';
-                        progressSpeed.textContent = '';
-                        progressEta.textContent = '';
-                        downloadBtnText.textContent = 'Downloaded!';
+                        if (progressStatus) progressStatus.textContent = 'Download complete!';
+                        if (downloadBtnText) downloadBtnText.textContent = 'Downloaded!';
                         showSuccess('File aapke Downloads folder me save ho gayi!');
                         resolve();
                         break;
 
                     case 'error':
-                        clearTimeout(deadlineTimer);
                         clearProgressPolling();
-                        reject(new Error('Server error during download. Please try again.'));
+                        reject(new Error('Server error during download.'));
                         break;
                 }
-            } catch { /* ignore transient poll errors */ }
+            } catch { }
         }, POLL_MS);
     });
 }
 
 function setProgress(percent) {
     const p = Math.min(100, Math.max(0, percent));
-    progressBar.style.width = p + '%';
-    progressPercent.textContent = p.toFixed(0) + '%';
+    if (progressBar) progressBar.style.width = p + '%';
+    if (progressPercent) progressPercent.textContent = p.toFixed(0) + '%';
 }
 
 function resetDownloadState() {
     isDownloading = false;
-    downloadBtn.disabled = false;
-    downloadBtnText.textContent = 'Download Now';
-    progressSection.style.display = 'none';
+    if (downloadBtn) downloadBtn.disabled = false;
+    if (downloadBtnText) downloadBtnText.textContent = 'Download Now';
+    if (progressSection) progressSection.style.display = 'none';
     setProgress(0);
-    progressStatus.textContent = '';
-    progressSpeed.textContent = '';
-    progressEta.textContent = '';
     clearProgressPolling();
 }
 
@@ -355,13 +367,12 @@ function clearProgressPolling() {
    Toast Notifications
    ============================================================ */
 function showError(msg) {
+    if (!errorMessage || !errorToast) return;
     errorMessage.textContent = msg;
-    // Clear any previous action buttons
     const oldBtn = errorToast.querySelector('.error-action-btn');
     if (oldBtn) oldBtn.remove();
-    
     errorToast.style.display = 'flex';
-    successToast.style.display = 'none';
+    if (successToast) successToast.style.display = 'none';
 }
 
 function showErrorWithAction(msg, actionText) {
@@ -371,43 +382,73 @@ function showErrorWithAction(msg, actionText) {
     actionBtn.textContent = actionText;
     actionBtn.onclick = () => {
         hideError();
-        settingsBtn.click();
+        if (settingsBtn) settingsBtn.click();
     };
     errorToast.appendChild(actionBtn);
 }
 
-function hideError() { errorToast.style.display = 'none'; }
+function hideError() { if (errorToast) errorToast.style.display = 'none'; }
 
 function showSuccess(msg) {
+    if (!successMessage || !successToast) return;
     successMessage.textContent = msg;
     successToast.style.display = 'flex';
     setTimeout(() => { successToast.style.display = 'none'; }, 6000);
 }
-function hideSuccess() { successToast.style.display = 'none'; }
+function hideSuccess() { if (successToast) successToast.style.display = 'none'; }
 
-window.hideError = hideError;
+/* ============================================================
+   Cookie Setup Logic
+   ============================================================ */
+if (settingsBtn && setupModal) {
+    settingsBtn.addEventListener('click', () => {
+        console.log("Settings opened");
+        if (cookieInput) cookieInput.value = localStorage.getItem('yt_cookies') || '';
+        setupModal.style.display = 'flex';
+    });
 
-saveCookiesBtn.addEventListener('click', () => {
-    const val = cookieInput.value.trim();
-    if (val) {
+    if (closeModal) {
+        closeModal.addEventListener('click', () => setupModal.style.display = 'none');
+    }
+
+    setupModal.addEventListener('click', (e) => {
+        if (e.target === setupModal) setupModal.style.display = 'none';
+    });
+}
+
+if (setupTabs) {
+    setupTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            setupTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const target = tab.dataset.tab;
+            const pc = document.getElementById('pcContent');
+            const mobile = document.getElementById('mobileContent');
+            if (pc) pc.style.display = target === 'pc' ? 'block' : 'none';
+            if (mobile) mobile.style.display = target === 'mobile' ? 'block' : 'none';
+        });
+    });
+}
+
+if (saveCookiesBtn) {
+    saveCookiesBtn.addEventListener('click', () => {
+        const val = cookieInput ? cookieInput.value.trim() : '';
         localStorage.setItem('yt_cookies', val);
         initCookieState();
-        showSuccess('Setup saved! Ab aap high-quality aur age-restricted videos download kar sakte hain.');
-    } else {
+        showSuccess(val ? 'Setup saved!' : 'Settings cleared.');
+        setupModal.style.display = 'none';
+    });
+}
+
+if (clearCookiesBtn) {
+    clearCookiesBtn.addEventListener('click', () => {
+        if (cookieInput) cookieInput.value = '';
         localStorage.removeItem('yt_cookies');
         initCookieState();
-        showSuccess('Settings cleared.');
-    }
-    setupModal.style.display = 'none';
-});
-
-clearCookiesBtn.addEventListener('click', () => {
-    cookieInput.value = '';
-    localStorage.removeItem('yt_cookies');
-    initCookieState();
-    showSuccess('All saved cookies cleared.');
-    setupModal.style.display = 'none';
-});
+        showSuccess('Cleared!');
+        setupModal.style.display = 'none';
+    });
+}
 
 /* ============================================================
    Init
@@ -417,5 +458,6 @@ document.addEventListener('DOMContentLoaded', () => {
     checkServerHealth();
     initCookieState();
     setInterval(checkServerHealth, 15000);
-    urlInput.focus();
+    if (urlInput) urlInput.focus();
+    console.log("YT Downloader Initialized");
 });
