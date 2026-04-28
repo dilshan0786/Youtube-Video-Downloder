@@ -221,33 +221,34 @@
                     <button class="modal-close" id="closeModal">✕</button>
                 </div>
                 <div class="modal-body">
-                    <p class="modal-desc">YouTube ke 'Sign-in required' error ko khatam karne ke liye ye steps follow karein. Ye setup sirf ek baar karna hoga.</p>
+                    <p class="modal-desc">YouTube ke 'Sign-in required' error ko bypass karne ke liye aapko browser ki cookies deni hongi. Ye ek surakshit aur one-time setup hai.</p>
                     
                     <div class="setup-tabs">
-                        <div class="setup-tab active" data-tab="pc">PC / Laptop</div>
-                        <div class="setup-tab" data-tab="mobile">Mobile / Tablet</div>
+                        <div class="setup-tab active" data-tab="pc">💻 PC / Laptop</div>
+                        <div class="setup-tab" data-tab="mobile">📱 Mobile / Tablet</div>
                     </div>
 
                     <div class="tab-content" id="pcContent">
-                        <ol class="setup-steps">
-                            <li>Browser mein <strong>'Get cookies.txt LOCALLY'</strong> extension install karein.</li>
-                            <li>YouTube.com par jaakar login karein.</li>
-                            <li>Extension icon par click karein aur <strong>'Export'</strong> karein.</li>
-                            <li>Download hui file ka saara content copy karke niche box mein paste karein.</li>
-                        </ol>
+                        <ul class="setup-steps">
+                            <li data-step="1">Chrome/Edge browser mein <a href="https://chrome.google.com/webstore/detail/get-cookiestxt-locally/ccmclmglneebunpaciocnbehdencejge" target="_blank" class="step-link">Get cookies.txt LOCALLY</a> extension install karein.</li>
+                            <li data-step="2">YouTube.com kholin aur apna account login karein (agar pehle se login hai toh jarurat nahi).</li>
+                            <li data-step="3">Extension icon par click karein aur <strong>'Export'</strong> button dabayein. Ek <code>.txt</code> file download hogi.</li>
+                            <li data-step="4">Uss file ka saara content copy karke niche box mein paste kar dein.</li>
+                        </ul>
                     </div>
 
                     <div class="tab-content" id="mobileContent" style="display:none;">
-                        <ol class="setup-steps">
-                            <li>Play Store se <strong>'Kiwi Browser'</strong> download karein.</li>
-                            <li>Kiwi mein YouTube login karein aur 'Get cookies.txt' extension add karein.</li>
-                            <li>Baaki steps PC wale hi follow karein.</li>
-                        </ol>
+                        <ul class="setup-steps">
+                            <li data-step="1">Play Store se <a href="https://play.google.com/store/apps/details?id=com.kiwibrowser.browser" target="_blank" class="step-link">Kiwi Browser</a> install karein (Kiwi Extensions support karta hai).</li>
+                            <li data-step="2">Kiwi mein YouTube login karein aur Chrome Store se 'Get cookies.txt' extension add karein.</li>
+                            <li data-step="3">YouTube tab par jaakar extension se cookies copy karein.</li>
+                            <li data-step="4">Copy ki hui cookies ko niche box mein paste karein.</li>
+                        </ul>
                     </div>
 
                     <div class="cookie-input-wrapper">
                         <label>Paste cookies.txt content here:</label>
-                        <textarea id="cookieInput" placeholder="# Netscape HTTP Cookie File..."></textarea>
+                        <textarea id="cookieInput" placeholder="# Netscape HTTP Cookie File... (Paste here)"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
