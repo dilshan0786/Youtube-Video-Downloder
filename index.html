@@ -33,9 +33,17 @@
                 </div>
                 <span class="logo-text">YT<span class="logo-accent">Downloader</span></span>
             </div>
-            <div class="header-badge">
-                <span class="badge-dot"></span>
-                Original Quality
+            <div class="header-right">
+                <div class="header-badge">
+                    <span class="badge-dot"></span>
+                    Original Quality
+                </div>
+                <button class="settings-btn" id="settingsBtn" title="Setup Cookies (Bypass Error)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </button>
             </div>
         </header>
 
@@ -202,6 +210,50 @@
         <div class="server-status" id="serverStatus">
             <div class="status-dot" id="statusDot"></div>
             <span id="statusText">Checking server...</span>
+        </div>
+
+        <!-- Cookies Setup Modal -->
+        <div class="modal-overlay" id="setupModal" style="display:none;">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3>One-Time Setup (Bypass Errors)</h3>
+                    <button class="modal-close" id="closeModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-desc">YouTube ke 'Sign-in required' error ko khatam karne ke liye ye steps follow karein. Ye setup sirf ek baar karna hoga.</p>
+                    
+                    <div class="setup-tabs">
+                        <div class="setup-tab active" data-tab="pc">PC / Laptop</div>
+                        <div class="setup-tab" data-tab="mobile">Mobile / Tablet</div>
+                    </div>
+
+                    <div class="tab-content" id="pcContent">
+                        <ol class="setup-steps">
+                            <li>Browser mein <strong>'Get cookies.txt LOCALLY'</strong> extension install karein.</li>
+                            <li>YouTube.com par jaakar login karein.</li>
+                            <li>Extension icon par click karein aur <strong>'Export'</strong> karein.</li>
+                            <li>Download hui file ka saara content copy karke niche box mein paste karein.</li>
+                        </ol>
+                    </div>
+
+                    <div class="tab-content" id="mobileContent" style="display:none;">
+                        <ol class="setup-steps">
+                            <li>Play Store se <strong>'Kiwi Browser'</strong> download karein.</li>
+                            <li>Kiwi mein YouTube login karein aur 'Get cookies.txt' extension add karein.</li>
+                            <li>Baaki steps PC wale hi follow karein.</li>
+                        </ol>
+                    </div>
+
+                    <div class="cookie-input-wrapper">
+                        <label>Paste cookies.txt content here:</label>
+                        <textarea id="cookieInput" placeholder="# Netscape HTTP Cookie File..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" id="clearCookiesBtn">Clear Saved</button>
+                    <button class="btn-primary" id="saveCookiesBtn">Save Setup</button>
+                </div>
+            </div>
         </div>
 
 
