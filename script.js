@@ -174,6 +174,7 @@ async function fetchVideoInfo() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 url: url,
+                session_id: sessionId,
                 cookies: localStorage.getItem('yt_cookies') || ''
             })
         });
@@ -276,8 +277,7 @@ async function startDownload() {
     const params = new URLSearchParams({ 
         url: currentVideoUrl, 
         format_id: formatId, 
-        session_id: sessionId,
-        cookies: localStorage.getItem('yt_cookies') || ''
+        session_id: sessionId
     });
     const downloadUrl = `${API_BASE}/download?${params.toString()}`;
 

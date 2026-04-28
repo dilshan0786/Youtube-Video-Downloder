@@ -12,6 +12,8 @@ CORS(app)
 
 TEMP_DIR = tempfile.gettempdir()
 download_progress = {}
+# Temporary storage for cookies to avoid long URLs
+session_cookies = {}
 
 def find_ffmpeg():
     for path in ['/usr/bin/ffmpeg', '/usr/local/bin/ffmpeg']:
@@ -23,7 +25,6 @@ FFMPEG_EXE = find_ffmpeg()
 
 def create_temp_cookies(cookies_str):
     if not cookies_str or len(cookies_str) < 20: return None
-    # Flexible domain check
     if "youtube.com" not in cookies_str.lower() and "google.com" not in cookies_str.lower():
         return "INVALID_DOMAIN"
     try:
@@ -33,24 +34,17 @@ def create_temp_cookies(cookies_str):
     except: return None
 
 def get_ydl_opts(temp_cookie_file=None):
-    # Using 'tv', 'web_embedded', and 'ios' for maximum bot bypass
     return {
         'quiet': True,
         'no_warnings': True,
         'nocheckcertificate': True,
         'ffmpeg_location': FFMPEG_EXE,
         'cookiefile': temp_cookie_file if temp_cookie_file and temp_cookie_file != "INVALID_DOMAIN" else None,
-        'extractor_args': {
-            'youtube': {
-                'player_client': ['tv', 'web_embedded', 'ios', 'android'],
-                'skip': ['dash', 'hls']
-            }
-        },
+        'extractor_args': {'youtube': {'player_client': ['tv', 'web_embedded', 'ios', 'android']}},
+        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
         'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
             'Referer': 'https://www.youtube.com/',
+            'Accept-Language': 'en-US,en;q=0.9',
         }
     }
 
@@ -68,6 +62,11 @@ def get_info():
     data = request.get_json()
     url = data.get('url', '').strip()
     cookies_data = data.get('cookies')
+    session_id = data.get('session_id', 'cloud')
+    
+    # Store cookies in session to avoid long URLs in /download
+    if cookies_data:
+        session_cookies[session_id] = cookies_data
     
     temp_cookie_file = create_temp_cookies(cookies_data)
     if temp_cookie_file == "INVALID_DOMAIN":
@@ -103,11 +102,11 @@ def download_video():
     url = request.args.get('url')
     format_id = request.args.get('format_id', 'bestvideo+bestaudio/best')
     session_id = request.args.get('session_id', 'cloud')
-    user_cookies = request.args.get('cookies')
+    
+    # Get cookies from session instead of URL
+    user_cookies = session_cookies.get(session_id)
     
     temp_cookie_file = create_temp_cookies(user_cookies)
-    if temp_cookie_file == "INVALID_DOMAIN": temp_cookie_file = None
-
     output_template = os.path.join(TEMP_DIR, f'yt_{session_id}_%(title)s.%(ext)s')
     download_progress[session_id] = {'status': 'downloading', 'percent': 0}
 
