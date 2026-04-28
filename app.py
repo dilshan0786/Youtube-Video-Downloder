@@ -13,24 +13,21 @@ CORS(app)
 TEMP_DIR = tempfile.gettempdir()
 download_progress = {}
 
-# ──────────────────────────────────────────────
-# FFmpeg Detection for Cloud (Linux)
-# ──────────────────────────────────────────────
 def find_ffmpeg():
-    # Priority for Linux/Cloud systems
     for path in ['/usr/bin/ffmpeg', '/usr/local/bin/ffmpeg']:
         if os.path.exists(path): return path
-    # Fallback to system search
     p = shutil.which("ffmpeg")
     return p if p else None
 
 FFMPEG_EXE = find_ffmpeg()
 
-# ──────────────────────────────────────────────
-# Helpers
-# ──────────────────────────────────────────────
 def create_temp_cookies(cookies_str):
     if not cookies_str or len(cookies_str) < 20: return None
+    
+    # SMART CHECK: Check if cookies actually belong to YouTube
+    if ".youtube.com" not in cookies_str and "google.com" not in cookies_str:
+        return "INVALID_DOMAIN"
+        
     try:
         fd, path = tempfile.mkstemp(suffix='.txt', prefix='yt_cookie_', dir=TEMP_DIR)
         with os.fdopen(fd, 'w') as f: f.write(cookies_str)
@@ -38,23 +35,19 @@ def create_temp_cookies(cookies_str):
     except: return None
 
 def get_ydl_opts(temp_cookie_file=None):
-    return {
+    opts = {
         'quiet': True,
         'no_warnings': True,
         'nocheckcertificate': True,
         'ffmpeg_location': FFMPEG_EXE,
-        'cookiefile': temp_cookie_file,
-        # Shorts and Restricted videos optimized clients
+        'cookiefile': temp_cookie_file if temp_cookie_file and temp_cookie_file != "INVALID_DOMAIN" else None,
         'extractor_args': {'youtube': {'player_client': ['ios', 'web', 'mweb']}},
         'user_agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1'
     }
+    return opts
 
-# ──────────────────────────────────────────────
-# Routes
-# ──────────────────────────────────────────────
 @app.route('/health')
-def health():
-    return "OK", 200
+def health(): return "OK", 200
 
 @app.route('/')
 def home(): return send_from_directory(os.getcwd(), 'index.html')
@@ -66,14 +59,17 @@ def static_files(path): return send_from_directory(os.getcwd(), path)
 def get_info():
     data = request.get_json()
     url = data.get('url', '').strip()
-    temp_cookie_file = create_temp_cookies(data.get('cookies'))
+    cookies_data = data.get('cookies')
     
+    temp_cookie_file = create_temp_cookies(cookies_data)
+    if temp_cookie_file == "INVALID_DOMAIN":
+        return jsonify({"error": "Aapne galat cookies paste ki hain! Pehle YouTube.com kholiye, fir export kijiye."}), 400
+
     try:
         with yt_dlp.YoutubeDL(get_ydl_opts(temp_cookie_file)) as ydl:
+            # First try to extract without format restriction
             info = ydl.extract_info(url, download=False)
         
-        # We define simple labels, but the format_id will have multiple fallbacks
-        # format_id: "try this + that / OR try this / OR just get the best single file"
         formats = [
             {"format_id": "bestvideo+bestaudio/best", "label": "Best Quality (Highest)", "ext": "mp4"},
             {"format_id": "bestvideo[height<=1080]+bestaudio/best[height<=1080]/best", "label": "1080p Full HD", "ext": "mp4"},
@@ -89,7 +85,19 @@ def get_info():
             "formats": formats
         })
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        msg = str(e)
+        if "format is not available" in msg:
+            # Fallback for some weird videos
+            try:
+                with yt_dlp.YoutubeDL({'quiet':True, 'no_warnings':True}) as ydl2:
+                    info2 = ydl2.extract_info(url, download=False)
+                    return jsonify({
+                        "title": info2.get('title', 'Video'),
+                        "thumbnail": info2.get('thumbnail', ''),
+                        "formats": [{"format_id": "best", "label": "Standard Quality", "ext": "mp4"}]
+                    })
+            except: pass
+        return jsonify({"error": msg[:500]}), 400
     finally:
         if temp_cookie_file and os.path.exists(temp_cookie_file):
             try: os.remove(temp_cookie_file)
@@ -103,8 +111,9 @@ def download_video():
     user_cookies = request.args.get('cookies')
     
     temp_cookie_file = create_temp_cookies(user_cookies)
+    if temp_cookie_file == "INVALID_DOMAIN": temp_cookie_file = None
+
     output_template = os.path.join(TEMP_DIR, f'yt_{session_id}_%(title)s.%(ext)s')
-    
     download_progress[session_id] = {'status': 'downloading', 'percent': 0}
 
     def hook(d):
@@ -113,13 +122,9 @@ def download_video():
             except: p = 0
             download_progress[session_id]['percent'] = p
 
-    # THE MAGIC: We add "/best" at the end of whatever format is requested 
-    # so yt-dlp NEVER says "format not available"
-    final_format = f"{format_id}/best"
-
     ydl_opts = get_ydl_opts(temp_cookie_file)
     ydl_opts.update({
-        'format': final_format,
+        'format': f"{format_id}/best",
         'outtmpl': output_template,
         'progress_hooks': [hook],
         'merge_output_format': 'mp4' if 'bestaudio' not in format_id else None
